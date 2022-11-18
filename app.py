@@ -194,7 +194,7 @@ def add_author():
         nasc=request.form['nasc']
         pais=request.form['pais']
 
-        execute_string = f"INSERT INTO authors(nome, nasc, pais) VALUES ({nome_autor}, {nasc}, {pais})"
+        execute_string = f"INSERT INTO authors(nome, nasc, pais) VALUES ('{nome_autor}', {nasc}, '{pais}')"
 
         with sqlite3.connect(db_path) as connie:
             c = connie.cursor()
