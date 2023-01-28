@@ -1,4 +1,4 @@
-# crud_flask
+# Datalivros
 Projeto para uso pessoal individual, desenvolvido para prática e aprendizado utilizando Python, SQLite, Flask, Matplotlib, HTML e Bootstrap e Pandas.
 
 Sistema de registro de livros lidos, armazena informações em um banco de dados e permite consultas, atualizações, adições, remoções, e visualizações dos dados e estatísticas descritivas gerais.
