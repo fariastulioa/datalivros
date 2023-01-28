@@ -8,5 +8,6 @@ Executar o arquivo create_db.py reseta os bancos de dados, permitindo o uso por 
 O arquivo app.py inicializa a execução (via Flask) do aplicativo, que pode ser acessado na porta 5050 do localhost, por meio de algum navegador web.
 Os dados são salvos no arquivo booksdb.db
 
-A versão de Python e suas bibliotecas utilizadas estão especificadas no arquivo de texto requirements.txt
-Este arquivo foi gerado automaticamente via pigar.
+A versão de Python e suas bibliotecas utilizadas estão especificadas no arquivo de texto 'requirements.txt', gerado automaticamente via pigar.
+
+Ao executar app.py, a aplicação web fica disponível para acesso via navegador no endereço localhost:5050
