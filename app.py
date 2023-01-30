@@ -82,14 +82,14 @@ def remove_author(nome_autor):
 
 
 def alter_book(book_id, titulo, autor, ano, genero):
-    execute_string = f"""UPDATE books SET "titulo" = '{titulo}', "autor" = '{autor}', ano = {ano}, "genero"= '{genero}' WHERE "id" = {book_id}"""
+    execute_string = f"""UPDATE books SET "titulo" = "{titulo}", "autor" = '{autor}', ano = {ano}, "genero"= "{genero}" WHERE "id" = {book_id}"""
     with sqlite3.connect(db_path) as connie:
         c = connie.cursor()
         c.execute(execute_string)
 
 
 def alter_author(nome_autor, nasc, pais):
-    execute_string = f"""UPDATE authors SET "nome" = '{nome_autor}', nasc = {nasc}, "pais" = '{pais}' WHERE "nome" = '{nome_autor}'"""
+    execute_string = f"""UPDATE authors SET "nome" = "{nome_autor}", nasc = {nasc}, "pais" = '{pais}' WHERE "nome" = '{nome_autor}'"""
     with sqlite3.connect(db_path) as connie:
         c = connie.cursor()
         c.execute(execute_string)
