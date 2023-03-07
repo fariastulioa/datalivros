@@ -9,7 +9,20 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import matplotlib.pyplot as plt
 from cycler import cycler
 from numpy import arange
+import seaborn as sns
+import json
+from flask import escape, Markup
+from io import StringIO
+import base64
 
+from bokeh.embed import components
+from bokeh.plotting import figure
+
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import io
+
+from flask import Flask, render_template, send_file, make_response, request
 
 plt.rc('image', cmap='Set3')
 plt.rcParams['axes.prop_cycle'] = cycler('color', plt.get_cmap('Set3').colors)
@@ -17,6 +30,14 @@ plt.rcParams['axes.prop_cycle'] = cycler('color', plt.get_cmap('Set3').colors)
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
+# Stats to add to general stats page:
+
+# top authors
+# avg author age (general/by genre)
+# avg year
+# top genres
+# oldest, newest books
+# oldest, newest authors
 
 
 # CREATE, READ, UPDATE, DELETE
@@ -27,7 +48,6 @@ ano
 autor
 titulo
 id_livro
-paginas
 
 # Tabela Autores
 nome (autores.nome == livros.autor)
@@ -272,9 +292,81 @@ def topgeneros():
     pass
 
 
-@app.route("/cronolivros")
+@app.route("/cronolivros",methods=['POST','GET'])
 def cronolivros():
-    return(render_template("cronolivros.html"))
+    df = df_from_sql(query_all_books)
+    
+    x = df.groupby('ano').size().index
+    y = df.groupby('ano').size().values
+        
+    df['decada'] = 10 * (df['ano'] // 10)
+    
+    xd = df.groupby('decada').size().index
+    yd = df.groupby('decada').size().values
+    
+    
+    p1 = figure(height=400, sizing_mode="stretch_width")
+    p1.vbar(x=x, top=y, width=0.7)
+    p1.xgrid.grid_line_color= None
+    script1, div1 = components(p1)
+    
+    p2 = figure(height=400, sizing_mode="stretch_width")
+    p2.vbar(x=xd, top=yd, width=0.7)
+    p2.xgrid.grid_line_color= None
+    script2, div2 = components(p1)
+    
+    
+    # aqui deveria retornar-se uma imagem com o grafico
+    return (render_template('cronolivros.html', script1=Markup(script1), script2=Markup(script2),div1=Markup(div1),div2=Markup(div2)))
+
+@app.route('/plot/livrosporano')
+def plot_livrosporano():
+    df = df_from_sql(query_all_books)
+    
+    x = df.groupby('ano').size().index
+    y = df.groupby('ano').size().values
+    
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_title("Número de livros")
+    axis.set_xlabel("Ano")
+    axis.grid(True)
+    axis.plot(x, y)
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
+
+@app.route('/plot/livrospordecada')
+def plot_livrospordecada():
+    df = df_from_sql(query_all_books)
+    
+    df['decada'] = 10 * (df['ano'] // 10)
+    
+    xd = df.groupby('decada').size().index
+    yd = df.groupby('decada').size().values
+    
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_title("Número de livros")
+    axis.set_xlabel("Década")
+    axis.grid(True)
+    axis.plot(xd, yd)
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
+
+@app.route('/g1')
+def g1():
+
+    
+    return json.dumps(bokeh.embed.json_item(item_text, "myplot"))
+
 
 
 @app.route("/cronoautores")
@@ -293,7 +385,7 @@ def stats():
     # idade media na publicacao do livro
     # media idade por genero
     # autor mais velho
-    # auto mais novo
+    # autor mais novo
     # media livro por autor
     pass
 
@@ -312,10 +404,75 @@ def df_from_sql(query):
         df = pd.read_sql_query(query, connie)
         print(df.head())
         print(type(df))
-    return df
+    return(df)
 
 query_all_books = "SELECT * FROM books"
 
+
+books_df = df_from_sql(query_all_books)
+books_df.sort_values(inplace=True, by="ano")
+
+oldest_book = books_df.iloc[0]
+newest_book = books_df.iloc[-1]
+print(oldest_book)
+print(newest_book)
+
+avg_book_year = books_df['ano'].mean()
+print(avg_book_year)
+
+authors_df = df_from_sql("SELECT * FROM authors")
+
+authors_df.sort_values(inplace=True, by='nasc')
+
+oldest_author = authors_df.iloc[0]
+newest_author = authors_df.iloc[-1]
+print(oldest_author)
+print(newest_author)
+
+
+bookcounts_per_author = books_df['autor'].value_counts(ascending=True)
+
+avg_year_by_genre = books_df.groupby(['genero'])['ano'].mean()
+print(avg_year_by_genre)
+
+avg_books_per_author = bookcounts_per_author.mean()
+print(avg_books_per_author)
+
+author_most_books = books_df['autor'].mode()
+print(author_most_books)
+most_books = bookcounts_per_author[-1]
+
+query_both_string = """
+SELECT * FROM books
+INNER JOIN authors ON books.autor = authors.nome;
+"""
+
+both_df = df_from_sql(query_both_string)
+print(both_df)
+
+both_df['idade'] = both_df['ano'] - both_df['nasc']
+avg_age_by_genre = both_df.groupby(['genero'])['idade'].mean()
+print(avg_age_by_genre)
+
+bookcounts_per_country = both_df['pais'].value_counts(ascending=True)
+
+
+country_most_books = bookcounts_per_country.iloc[-1]
+print(country_most_books)
+
+books_df.sort_values(inplace=True, by='ano')
+
+oldest_book = books_df.iloc[0][['titulo', 'autor', 'ano']]
+newest_book = books_df.iloc[-1][['titulo', 'autor', 'ano']]
+print(oldest_book)
+print(newest_book)
+
+both_df.sort_values(inplace=True, by='idade')
+
+highest_age = both_df.iloc[0][['titulo', 'autor', 'idade']]
+lowest_age = both_df.iloc[-1][['titulo', 'autor', 'idade']]
+print(highest_age)
+print(lowest_age)
 
 # TEMPLATES DE GRAFICOS PARA EXPOR NO HTML
 
@@ -328,7 +485,7 @@ def total_per_year(df):
     
     fig, ax = plt.subplots(figsize=(15,12))
     ax.tick_params(axis='both', which='major', labelsize=14)
-
+    
     ax.bar(x, y)
     ax.axhline(y=y.mean(), color='tab:orange', linestyle='dashed', label='Média', linewidth=0.4)
 
@@ -337,8 +494,18 @@ def total_per_year(df):
     ax.set_yticks(arange(0, y.max()+1, step=1))
     fig.tight_layout()
     ax.set_in_layout(True)
-
-    return(fig)
+    
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    plt.bar(x, y)
+    plt.axhline(y=y.mean(), color='tab:orange', linestyle='dashed', label='Média', linewidth=0.4)
+    plt.gca().spines['right'].set_color('none')
+    plt.gca().spines['top'].set_color('none')
+    plt.yticks(arange(0, y.max()+1, step=1))
+    plt.tight_layout()
+    plt.figure(figsize=(15,12),dpi=80)
+    
+    
+    return((fig,plt))
 
 
 def total_per_decade(df):
@@ -360,8 +527,19 @@ def total_per_decade(df):
     ax.set_yticks(arange(0, y.max()+1, step=5))
     fig.tight_layout()
     ax.set_in_layout(True)
-
-    return(fig)
+    
+    
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    plt.bar(x, y)
+    plt.axhline(y=y.mean(), color='tab:orange', linestyle='dashed', label='Média', linewidth=0.4)
+    plt.gca().spines['right'].set_color('none')
+    plt.gca().spines['top'].set_color('none')
+    plt.yticks(arange(0, y.max()+1, step=1))
+    plt.tight_layout()
+    plt.figure(figsize=(15,12),dpi=80)
+    
+    
+    return((fig,plt))
 
 
 def plot_genres(df):
@@ -391,15 +569,27 @@ def plot_genres(df):
 @app.route('/books_per_year.png') # colocar <img src="/books_per_year.png"> no HTML
 def books_per_year():
     df = df_from_sql(query_all_books)
-    fig = total_per_year(df)
-    output = BytesIO()
-    FigureCanvas(fig).print_png(output)
-    return (Response(output.getvalue(), mimetype='image/png'))
+    
+    x = df.groupby('ano').size().index
+    y = df.groupby('ano').size().values
+    
+
+    
+
+    df['decada'] = 10 * (df['ano'] // 10)
+    
+    xd = df.groupby('decada').size().index
+    yd = df.groupby('decada').size().values
+    
+
+    
+    # aqui deveria retornar-se uma imagem com o grafico
+    return (render_template('cronolivros.html'))
 
 @app.route('/books_per_decade.png')
 def books_per_decade():
     df = df_from_sql(query_all_books)
-    fig = total_per_decade(df)
+    fig = total_per_decade(df)[1]
     output = BytesIO()
     FigureCanvas(fig).print_png(output)
     return (Response(output.getvalue(), mimetype='image/png'))
