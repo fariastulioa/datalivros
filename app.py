@@ -14,7 +14,6 @@ import json
 from flask import escape, Markup
 from io import StringIO
 import base64
-
 from bokeh.embed import components
 from bokeh.plotting import figure
 
@@ -90,6 +89,7 @@ print(avg_age_by_genre)
 avg_age = both_df['idade'].mean()
 bookcounts_per_country = both_df['pais'].value_counts(ascending=False)
 
+bookcounts_per_genre = books_df['genero'].value_counts(ascending=False)
 
 country_most_books = bookcounts_per_country.iloc[0]
 print(country_most_books)
@@ -108,7 +108,9 @@ lowest_age = both_df.iloc[0][['titulo', 'autor', 'idade']]
 print(highest_age)
 print(lowest_age)
 
-
+countrycount_per_genre = both_df.groupby(['genero']).nunique()['pais'].copy()
+countrycount_per_genre.sort_values(inplace=True, ascending=False)
+print(countrycount_per_genre)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -444,7 +446,7 @@ def plot_livrospordecada():
     
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
-    axis.set_title("Número de livros")
+    axis.set_ylabel("Número de livros")
     axis.set_xlabel("Década")
     axis.grid(True)
     axis.plot(xd, yd)
@@ -462,7 +464,7 @@ def plot_topautores():
     y = bookcounts_per_author[0:5].values
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
-    axis.set_title("Número de livros")
+    axis.set_ylabel("Número de livros")
     axis.set_xlabel("Autor")
     axis.grid(False)
     axis.bar(x, y, color=[colors[i] for i in range(len(x))])
@@ -506,6 +508,49 @@ def plot_topautorgeneros():
     response.mimetype = 'image/png'
     return response
 
+
+@app.route('/plot/topgeneros')
+def plot_topgeneros():
+    
+    x = bookcounts_per_genre.index
+    y = bookcounts_per_genre.values
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_ylabel("Número de livros")
+    axis.grid(False)
+    axis.bar(x, y, color=[colors[i] for i in range(len(x))])
+    plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    
+    return response
+
+
+@app.route('/plot/paisesporgenero')
+def plot_paisesporgenero():
+    
+    x = countrycount_per_genre.index
+    y = countrycount_per_genre.values
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_ylabel("Número de países distintos")
+    axis.grid(False)
+    axis.bar(x, y, color=[colors[i] for i in range(len(x))])
+    plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    
+    return response
 
 
 
