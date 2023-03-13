@@ -11,8 +11,10 @@ Os dados são salvos no arquivo booksdb.db
 A versão de Python e suas bibliotecas utilizadas estão especificadas no arquivo de texto 'requirements.txt', gerado automaticamente via pigar.
 
 Ao executar app.py, a aplicação web fica disponível para acesso via navegador no endereço localhost:5050  
+
   
-As capturas de tela a seguir ilustram o funcionamento do aplicativo Web.
+As capturas de tela a seguir ilustram o funcionamento do aplicativo Web.  
+
 
 
 Página inicial (home), com a tabela de livros visível:  
