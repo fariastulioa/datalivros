@@ -17,12 +17,7 @@
         <div class="jumbotron">
         <h1 class="display-4">Dados dos países</h1>
         <br>
-        {% if message %}
-        <h1 class="display-5">{{message}}</h1>
-        {% else %}
-        <p class="lead">Sistema de gerenciamento de dados de livros</p>
-        <p>Construido com Python, Flask, Bootstrap e Sqlite. <a href="{{ url_for('about') }}">Mais informações</a></p>
-        {% endif %}
+
         <a class="btn btn-primary btn-lg" href="{{ url_for('home') }}" role="button">Home</a>
 
         <hr class="my-4">
