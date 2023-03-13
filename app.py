@@ -25,7 +25,8 @@ from flask import Flask, render_template, send_file, make_response, request
 
 
 colors = ['hotpink', 'mediumslateblue', 'royalblue', 'darkcyan', 'springgreen', 'forestgreen',
-        'olive', 'gold', 'darkgoldenrod', 'orange', 'orangered', 'firebrick', 'gray', 'blue', 'red', 'magenta']
+        'olive', 'gold', 'darkgoldenrod', 'orange', 'orangered', 'firebrick', 'gray', 'blue', 'red',
+        'magenta', 'crimson', 'yellow', 'lime', 'darkolivegreen', 'darkkhaki', 'darkseagreen', 'mediumvioletred']
 cols = ['titulo', 'autor', 'ano', 'genero']
 db_path = 'booksdb.db'
 a_cols = ['nome', 'nasc', 'pais']
@@ -81,6 +82,7 @@ INNER JOIN authors ON books.autor = authors.nome;
 
 both_df = df_from_sql(query_both_string)
 print(both_df)
+both_df.to_csv('C:/Users/STI/Downloads/both_df.csv')
 
 both_df['idade'] = both_df['ano'] - both_df['nasc']
 avg_age_by_genre = both_df.groupby(['genero'])['idade'].mean()
@@ -88,29 +90,39 @@ print(avg_age_by_genre)
 
 avg_age = both_df['idade'].mean()
 bookcounts_per_country = both_df['pais'].value_counts(ascending=False)
+bookcounts_per_country = bookcounts_per_country[0:10]
 
 bookcounts_per_genre = books_df['genero'].value_counts(ascending=False)
 
 country_most_books = bookcounts_per_country.iloc[0]
-print(country_most_books)
+
+
+top_country_genre = both_df.groupby('pais')['genero'].apply(lambda x: x.value_counts().index[0]).reset_index()
+
+
+
+
+avg_country_year = both_df.groupby(['pais'])['ano'].mean()
+avg_country_age = both_df.groupby(['pais'])['idade'].mean().round(decimals = 0).astype('int')
+avg_country_age.sort_values(inplace=True)
+print('butico')
+print(avg_country_age)
+print('butico')
 
 books_df.sort_values(inplace=True, by='ano')
 
 oldest_book = books_df.iloc[0][['titulo', 'autor', 'ano']]
 newest_book = books_df.iloc[-1][['titulo', 'autor', 'ano']]
-print(oldest_book)
-print(newest_book)
 
 both_df.sort_values(inplace=True, by='idade')
 
 highest_age = both_df.iloc[-1][['titulo', 'autor', 'idade']]
 lowest_age = both_df.iloc[0][['titulo', 'autor', 'idade']]
-print(highest_age)
-print(lowest_age)
+
 
 countrycount_per_genre = both_df.groupby(['genero']).nunique()['pais'].copy()
 countrycount_per_genre.sort_values(inplace=True, ascending=False)
-print(countrycount_per_genre)
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -374,11 +386,11 @@ def views():
                 
                 
                 statsd = {}    
-                statsd['Livro mais antigo'] = f"Titulo: {oldest_book['titulo']}, Ano:{oldest_book['ano']}"
-                statsd['Livro mais recente'] = f"Titulo: {newest_book['titulo']}, Ano:{newest_book['ano']}"
+                statsd['Livro mais antigo'] = f"Titulo: {oldest_book['titulo']}, Ano: {oldest_book['ano']}"
+                statsd['Livro mais recente'] = f"Titulo: {newest_book['titulo']}, Ano: {newest_book['ano']}"
                 statsd['Ano médio de lançamento'] = int(avg_book_year)
-                statsd['Autor mais antigo'] = f"Nome: {earliest_author['nome']}, Ano de nascimento:{earliest_author['nasc']}"
-                statsd['Autor mais recente'] = f"Nome: {mostrecent_author['nome']}, Ano de nascimento:{mostrecent_author['nasc']}"
+                statsd['Autor mais antigo'] = f"Nome: {earliest_author['nome']}, Ano de nascimento: {earliest_author['nasc']}"
+                statsd['Autor mais recente'] = f"Nome: {mostrecent_author['nome']}, Ano de nascimento: {mostrecent_author['nasc']}"
                 statsd['Ano médio de nascimento'] = int(avg_birthyear)
                 statsd['Países com mais livros'] = countries_bookcounts_string
                 statsd['Média de livros por autor'] = round(avg_books_per_author, 2)
@@ -397,23 +409,6 @@ def views():
             
         return (render_template('views.html'))
 
-@app.route("/topautores")
-def topautores():
-    # grafico de barras com total de livros por autor (top autores)
-    pass
-
-
-@app.route("/topgeneros")
-def topgeneros():
-    # grafico de barras com total de livros por genero (top generos)
-    pass
-
-
-@app.route("/cronolivros",methods=['POST','GET'])
-def cronolivros():
-    
-    # aqui deveria retornar-se uma imagem com o grafico
-    return (render_template('cronolivros.html'))
 
 @app.route('/plot/livrosporano')
 def plot_livrosporano():
@@ -552,44 +547,159 @@ def plot_paisesporgenero():
     
     return response
 
-
-
-@app.route("/cronoautores")
-def cronoautores():
-    # grafico barras com nascimeento dos autores por decada
-    # grafico idade dos autores na publicacao do livro
-    # Total count de cada ano X ano
+@app.route('/plot/livrosporpais')
+def plot_livrosporpais():
     
-    pass
-
-
-@app.route("/stats", methods=['GET', 'POST'])
-def stats():
-    # mostrar dados interessantes
-    # top genero, top autor de cada genero, top autor, livro mais velho, livro mais recente, genero menos lido
-    # idade media na publicacao do livro
-    # media idade por genero
-    # autor mais velho
-    # autor mais novo
-    # media livro por autor
-    statsd = {}
+    df = df_from_sql(query_all_books)
     
-    statsd['Livro mais antigo'] = oldest_book
-    statsd['Livro mais recente'] = newest_book
-    statsd['Ano médio de lançamento'] = avg_book_year
-    statsd['Autor mais antigo'] = earliest_author
-    statsd['Autor mais recente'] = mostrecent_author
-    statsd['Ano médio de nascimento'] = avg_birthyear
-    statsd['Países com mais livros'] = bookcounts_per_country[0:5]
-    statsd['Média de livros por autor'] = avg_books_per_author
-    statsd['Autor mais jovem na data de publicação'] = lowest_age
-    statsd['Autor mais velho na data de publicação'] = highest_age
-    statsd['Idade média do autor na data da publicação'] = avg_age
-    statsd['Gênero com maior média de idade de autor'] = avg_age_by_genre.sort_values(by='idade', ascending=False)[0]
-    statsd['Gênero com menor média de idade de autor'] = avg_age_by_genre.sort_values(by='idade', ascending=False)[-1]
+    x = bookcounts_per_country.index
+    y = bookcounts_per_country.values
+    
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_ylabel("Número de livros")
+    axis.grid(False)
+    axis.bar(x, y, color=[colors[i] for i in range(len(x))])
+    axis.set_ylim(0,y.max()+5)
+    plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+    
+    fig.autofmt_xdate()
+    plt.tight_layout()    
+    
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
+
+@app.route('/plot/generoporpais')
+def plot_generoporpais():
     
     
-    return(render_template("stats.html", statsd=statsd))
+    
+    country_genre_counts = both_df.groupby(['pais', 'genero']).size()
+    country_genre_counts.sort_values(ascending=False, inplace=True)
+    data = pd.DataFrame(columns=['pais', 'genero', 'nlivros'])
+    lista = []
+
+    for i in range(0,country_genre_counts.index.shape[0],1):
+        lista.append({'pais':country_genre_counts.index[i][0],
+                    'genero':country_genre_counts.index[i][1],
+                    'nlivros':country_genre_counts.values[i]})
+    
+    data = pd.DataFrame(lista)
+    data.drop_duplicates(subset='pais',inplace=True)
+    
+    top_country_genres = data.iloc[0:5]
+    
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_ylabel("Número de Livros")
+    axis.grid(False)
+    print('aqui')
+    axis.bar(x=top_country_genres['genero'], height=top_country_genres['nlivros'], color=[colors[i] for i in range(len(top_country_genres['genero']))], label=top_country_genres['pais'])
+    axis.bar_label(axis.containers[0], label_type='edge', labels=top_country_genres['pais'], padding=-14)
+    #axis.bar(x, y, color=[colors[i] for i in range(len(x))])
+    #axis.bar_label(axis.containers[0], label_type='center', labels=y, rotation=90)
+    plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
+
+@app.route('/plot/anomediopais')
+def plot_anomediopais():
+    
+    x = avg_country_year.index
+    y = avg_country_year.values
+    
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_ylabel("Ano médio de publicação")
+    axis.grid(False)
+    axis.bar(x, y, color=[colors[i] for i in range(len(x))])
+    axis.set_ylim(y.min()-20,y.max()+1)
+    plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
+
+@app.route('/plot/mediaidadepais')
+def plot_mediaidadepais():
+    
+    x = avg_country_age.index
+    y = avg_country_age.values
+    
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_ylabel("Média de idade na data de publicação")
+    axis.grid(False)
+    axis.bar(x=x, height=y, color=[colors[i] for i in range(len(x))])
+    axis.set_ylim(y.min()-20,y.max()+1)
+    plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
+
+
+@app.route('/plot/histidades')
+def plot_histidades():
+    
+    
+    
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_xlabel("Idade na data de publicação")
+    axis.hist(both_df['idade'])
+    axis.axvline(x=both_df['idade'].mean(), color='orange', label='Média')
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    
+    return response
+
+
+@app.route('/plot/decadasnasc')
+def plot_decadasnasc():
+    
+    
+    
+    both_df['decada'] = 10 * (both_df['nasc'] // 10)
+    
+    xd = both_df.groupby('decada').size().index
+    yd = both_df.groupby('decada').size().values
+    
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_ylabel("Número de autores")
+    axis.set_xlabel("Década")
+    axis.grid(True)
+    axis.plot(xd, yd)
+    canvas = FigureCanvas(fig)
+    output = io.BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
 
 
 @app.route("/about")
