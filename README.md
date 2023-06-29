@@ -1,63 +1,68 @@
 # Datalivros
-Projeto para uso pessoal individual, desenvolvido para prática e aprendizado utilizando Python, SQLite, Flask, Matplotlib, HTML e Bootstrap e Pandas.
+Personal project for individual use, built as practice on Python, SQlite, Flask, Matplotlib, Pandas, HTML & Bootstrap.  
 
-Trata-se de um sistema de registro de livros lidos, que armazena informações em um banco de dados e permite realizar facilmente consultas, atualizações, adições, remoções no banco de dados.
-Portanto, pode ser considerada uma aplicação web CRUD (Create, Read, Update, Delete), um acrônimo para funcionalidades básicas de um sistema de gerenciamento de dados. Além das funcionalidades básicas CRUD, permite visualizações de dados e de medidas de estatística descritiva.
-
-Executar o arquivo create_db.py reseta os bancos de dados, permitindo o uso por um novo usuário.
-O arquivo app.py inicializa a execução (via Flask) do aplicativo, que pode ser acessado na porta 5050 do localhost, por meio de algum navegador web.
-Os dados são salvos no arquivo booksdb.db
-
-A versão de Python e suas bibliotecas utilizadas estão especificadas no arquivo de texto 'requirements.txt', gerado automaticamente via pigar.
-
-Ao executar app.py, a aplicação web fica disponível para acesso via navegador no endereço localhost:5050  
+It consists of a system to register books I read, that stores informations in a database and allows the user to easily query, search, update, add or remove books from the database.  
+Therefore, it can be considered a CRUD web app, with all the basic functionalities of a data management system.  
+Furthermore, it has data visualization and descriptive statistics features, which are always generated based on the current (up to date) state of the database.
 
   
-As capturas de tela a seguir ilustram o funcionamento do aplicativo Web.  
+## Instructions  
+
+Running create_db.py resets the database, allowing anyone to create their own database from scratch using books they read.  
+
+The app.py file starts running the Flask web app, which is set to be available on the 5050 port of the local host.  
+The Sqlite database stores its data in the booksdb.db file.
+
+The versions for Python and its dependencies used are specified on the 'requirements.tx' file, which was automatically generated via Pigar
+
+
+  
+  
+The following screenshots demonstrate several of the app pages in use.  
 
 
 
-Página inicial (home), com a tabela de livros visível:  
+Home page, with the books table on display:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/001.PNG)  
 
-Visualização da tabela de autores:  
+Displaying the authors table:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/002.PNG)  
 
-Tela de adição de livro: 
+Insert book page: 
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/003.PNG)  
 
-Tela de remoção de livro:  
+Remove book page:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/004.PNG)  
 
-Tela de alteração/atualização de livro:  
+Update/alter book page:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/005.PNG)  
 
-Tela de adição de autor:  
+Add author page:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/006.PNG)  
 
-Tela de remoção de autor:  
+Remove author page:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/007.PNG)  
 
-Tela de escolha de visualização de dados:  
+Selecting a data visualization page:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/008.PNG)  
 
-Visualização de gráficos dos autores mais lidos:  
+Displaying graphs on most read authors:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/009.PNG)  
 
-Visualização de gráficos dos gêneros mais lidos:  
+Displaying graphs on most read genres:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/010.PNG)  
 
-Visualização dos dados cronológicos dos livros:  
+Displaying books chronological data:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/011.PNG)  
 
-Visualização dos dados cronológicos dos autores  
+Displaying authors chronological data:  
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/012.PNG)  
 
-Visualização dos dados dos países: 
+Displaying countries data: 
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/013.PNG)  
 
-Visualização das estatísticas gerais: 
+Viewing general descriptive statistics: 
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/014.PNG)  
 
-Visualização da página "saiba mais" (/about): 
+Viewing page with meta information (/about): 
 ![](https://github.com/fariastulioa/datalivros/blob/main/screenshots/015.PNG)  
