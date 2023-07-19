@@ -81,8 +81,6 @@ INNER JOIN authors ON books.autor = authors.nome;
 """
 
 both_df = df_from_sql(query_both_string)
-print(both_df)
-both_df.to_csv('C:/Users/STI/Downloads/both_df.csv')
 
 both_df['idade'] = both_df['ano'] - both_df['nasc']
 avg_age_by_genre = both_df.groupby(['genero'])['idade'].mean()
@@ -486,7 +484,7 @@ def plot_topautorgeneros():
     
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
-    axis.set_title("Número de livros")
+    axis.set_ylabel("Número de livros")
     axis.set_xlabel("Autor")
     axis.grid(False)
     axis.bar(autores, contagem, label=generos, color=[colors[i] for i in range(len(generos))])
